@@ -4,6 +4,8 @@
 
 ![Куда пойти](screenshots/site.png)
 
+[Демка сайта](https://devmanorg.github.io/where-to-go-frontend/).
+
 ## Как запустить
 
 - Скачайте код
