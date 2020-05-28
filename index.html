@@ -18,10 +18,38 @@
       height: 100%;
     }
   </style>
+  <script id="places-geojson" type="application/json">
+    {
+      "type": "FeatureCollection",
+      "features": [
+        {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [30.321277, 59.935321]
+          },
+          "properties": {
+            "title": "Vsёхорошо!"
+          }
+        },
+        {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [30.375244, 59.929861]
+          },
+          "properties": {
+            "title": "Evo"
+          }
+        }
+      ]
+    }
+  </script>
+
 </head>
 <body>
   <div id="sidebar" class="visible">
-    <h1>Sidebar</h1>
+    <h2>Sidebar</h2>
   </div>
 
   <div id="map"></div>
@@ -35,7 +63,7 @@
 
   <script>
     var map = L.map('map');
-    map.setView([51.2, 7], 9);
+    map.setView([59.935321, 30.321277], 11);
 
     L.tileLayer.provider('OpenStreetMap.Mapnik').addTo(map);
 
@@ -74,6 +102,21 @@
           }
         },
       }
+    }).addTo(map);
+
+    function loadJSON(elementId){
+      return JSON.parse(document.getElementById(elementId).textContent);
+    }
+
+    let places = loadJSON('places-geojson');
+    log.debug('Load GeoJSON for places', places);
+
+    L.geoJSON(places, {
+        // style: function (feature) {
+        //     return {color: feature.properties.color};
+        // }
+    }).bindPopup(function (layer) {
+        return layer.feature.properties.description;
     }).addTo(map);
   </script>
 </body>
