@@ -40,20 +40,24 @@
           "type": "Feature",
           "geometry": {
             "type": "Point",
-            "coordinates": [37.652716, 55.756894]
+            "coordinates": [37.62, 55.793676]
           },
           "properties": {
-            "title": "PANORAMA360"
+            "title": "«Легенды Москвы",
+            "placeId": "moscow_legends",
+            "detailsUrl": "places/moscow_legends.json"
           }
         },
         {
           "type": "Feature",
           "geometry": {
             "type": "Point",
-            "coordinates": [37.594352, 55.746631]
+            "coordinates": [37.64, 55.753676]
           },
           "properties": {
-            "title": "Арбат"
+            "title": "Крыши24.рф",
+            "placeId": "roofs24",
+            "detailsUrl": "places/roofs24.json"
           }
         }
       ]
@@ -81,23 +85,9 @@
 
       <h5 class="mb-3">{{ selectedPlace.title }}</h5>
 
-      <p>
-        Ещё относительно недавно побывать на территории небоскрёба и тем более подняться на его верхние этажи могли лишь единицы. Остальным оставалось об этом только мечтать. Зато теперь двери башни открыты для всех желающих. Здесь можно полюбоваться невероятными видами Москвы, посетить фабрику мороженого или шоколада, а также заглянуть в другие развлекательные зоны.
-      </p>
+      <p>{{ selectedPlace.short_description }}</p>
 
-      <p>
-        <img src="https://kudago.com/media/thumbs/xl/images/rich_editor/27/3d/273de0841d3bb5d7ee5b45c81637a5aa.jpg" alt="Огромные окна">
-      </p>
-      <p>Окна на смотровой площадке достигают 6 метров в высоту</p>
-
-      <p>
-        На 89 этаж, где расположилась PANORAMA360, вас на скорости 8 метров в секунду домчит лифт. Площадка впечатляет не только потрясающей круговой панорамой города (отсюда Кремль и другие достопримечательности Москвы видны как на ладони), но и многообразием развлечений.
-      </p>
-
-      <p>
-        Посмотрите проекционное шоу с эффектом погружения, послушайте рассказ экскурсовода, соберите с помощью приложения виртуальные 3D-модели башен «Москва-Сити», загляните в фотозону и получите снимок на фоне города в подарок. Если проголодаетесь, пообедайте в экоресторане или перекусите в кафе. Купить милую дизайнерскую вещицу на память можно в сувенирной лавке.
-      </p>
-
+      <div v-html="selectedPlace.long_description"></div>
     </div>
   </div>
 
@@ -169,15 +159,20 @@
 
       log.debug('Feature selected', feature);
       sidebar.show();
-      loadPlaceInfo(10);
+      loadPlaceInfo(feature.properties.placeId, feature.properties.detailsUrl);
     }).addTo(map);
 
     var sidebarApp = new Vue({
       el: '#sidebar',
       data: {
         loadingPlaceId: null,
-        selectedPlace: null,
-          // attributes mainPhotoSrc, title
+        selectedPlace: null,  // object with attributes specified below
+          // title
+          // placeId
+          // mainPhotoSrc
+          // imgs
+          // short_description
+          // long_description
       },
       computed: {
         promptVisible: function () {
@@ -201,19 +196,12 @@
       });
     }
 
-    async function loadPlaceInfo(placeId){
+    async function loadPlaceInfo(placeId, detailsUrl){
       sidebarApp.selectedPlace = null;
       sidebarApp.loadingPlaceId = placeId;
 
       try {
-        await delay(1000); // FIXME
-
-        sidebarApp.selectedPlace = {
-          title: 'Смотровая площадка PANORAMA360 в ММДЦ «Москва-Сити»',
-          mainPhotoSrc: 'https://kudago.com/media/thumbs/xl/images/place/5c/c5/5cc52c074b4b94388390ab3a3096f5f8.jpg',
-        };  // FIXME
-
-        let response = await fetch(`/place/${placeId}/`);
+        let response = await fetch(detailsUrl);
 
         if (!response.ok){
           return;
@@ -226,9 +214,14 @@
           return
         }
 
+        let mainPhotoSrc = data.imgs.length && data.imgs[0] || null;
         sidebarApp.selectedPlace = {
-          title: 'Смотровая площадка PANORAMA360 в ММДЦ «Москва-Сити»',
-          mainPhotoSrc: 'https://kudago.com/media/thumbs/xl/images/place/5c/c5/5cc52c074b4b94388390ab3a3096f5f8.jpg',
+          title: data.title,
+          placeId: placeId,
+          mainPhotoSrc: mainPhotoSrc,
+          imgs: data.imgs,
+          short_description: data.description_short,
+          long_description: data.description_long,
         };
       } finally {
         if (sidebarApp.loadingPlaceId == placeId){
