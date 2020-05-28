@@ -125,12 +125,6 @@
 
     sidebar.show();
 
-    var marker = L.marker([51.2, 7]).addTo(map).on('click', function () {
-      sidebar.show();  // can be hidden by user before
-      // FIXME make request to server and show data
-      // FIXME show preloaded ?
-    });
-
     // FIXME show be hidden in production mode
     L.control.custom({
       position: 'bottomleft',
@@ -195,6 +189,10 @@
       }
     });
 
+    map.on('click', function () {
+      sidebarApp.selectedPlace = null;
+      sidebarApp.loadingPlaceId = null;
+    })
 
     function delay(ms) {
       // FIXME Does it used debug only for?
