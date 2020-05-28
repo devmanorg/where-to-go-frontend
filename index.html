@@ -24,6 +24,11 @@
     .place-description img {
       max-width: 100%;
     }
+
+    .select-place-prompt{
+      color: red;
+      width: 100px;
+    }
   </style>
   <script id="places-geojson" type="application/json">
     {
@@ -55,10 +60,24 @@
 
 </head>
 <body>
-  <div id="sidebar" class="place-description">
-      <img v-bind:src="mainPhotoSrc" class="d-block shadow mb-3 bg-white rounded" v-bind:alt="title">
+  <div id="sidebar" v-bind:class="selectedPlace ? 'bg-white' : 'bg-secondary'">
 
-      <h5 class="mb-3">{{ title }}</h5>
+    <div v-if="promptVisible" class="d-flex flex-column justify-content-center align-items-center" style="height: 100%;">
+      <img class="d-block select-place-prompt mb-4" src="hand-pointer-regular.svg" alt="Select place">
+      <h4>Выберите место на карте</h4>
+    </div>
+
+    <div class="align-items-center justify-content-center d-flex" v-if="loading" style="height: 100%;">
+      <div class="spinner-grow text-warning" style="width: 3rem; height: 3rem;" role="status">
+        <span class="sr-only">Loading...</span>
+      </div>
+    </div>
+
+    <div class="place-description" v-if="selectedPlace">
+
+      <img v-bind:src="selectedPlace.mainPhotoSrc" class="d-block shadow mb-3 rounded" v-bind:alt="selectedPlace.title">
+
+      <h5 class="mb-3">{{ selectedPlace.title }}</h5>
 
       <p>
         Ещё относительно недавно побывать на территории небоскрёба и тем более подняться на его верхние этажи могли лишь единицы. Остальным оставалось об этом только мечтать. Зато теперь двери башни открыты для всех желающих. Здесь можно полюбоваться невероятными видами Москвы, посетить фабрику мороженого или шоколада, а также заглянуть в другие развлекательные зоны.
@@ -154,16 +173,69 @@
 
       log.debug('Feature selected', feature);
       sidebar.show();
+      loadPlaceInfo(10);
     }).addTo(map);
 
-    var app = new Vue({
+    var sidebarApp = new Vue({
       el: '#sidebar',
       data: {
-        mainPhotoSrc: 'https://kudago.com/media/thumbs/xl/images/place/5c/c5/5cc52c074b4b94388390ab3a3096f5f8.jpg',
-        title: 'Смотровая площадка PANORAMA360 в ММДЦ «Москва-Сити»',
+        loadingPlaceId: null,
+        selectedPlace: null,
+          // attributes mainPhotoSrc, title
+      },
+      computed: {
+        promptVisible: function () {
+          return !this.loading && !this.selectedPlace;
+        },
+        loading: function () {
+          return this.loadingPlaceId !== null;
+        },
       }
     });
 
+
+    function delay(ms) {
+      // FIXME Does it used debug only for?
+      return new Promise((resolve, reject) => {
+        setTimeout(resolve, ms);
+      });
+    }
+
+    async function loadPlaceInfo(placeId){
+      sidebarApp.selectedPlace = null;
+      sidebarApp.loadingPlaceId = placeId;
+
+      try {
+        await delay(1000); // FIXME
+
+        sidebarApp.selectedPlace = {
+          title: 'Смотровая площадка PANORAMA360 в ММДЦ «Москва-Сити»',
+          mainPhotoSrc: 'https://kudago.com/media/thumbs/xl/images/place/5c/c5/5cc52c074b4b94388390ab3a3096f5f8.jpg',
+        };  // FIXME
+
+        let response = await fetch(`/place/${placeId}/`);
+
+        if (!response.ok){
+          return;
+        }
+
+        let data = await response.json();
+
+        if (sidebarApp.loadingPlaceId != placeId){
+          // Place loading was cancelled by user
+          return
+        }
+
+        sidebarApp.selectedPlace = {
+          title: 'Смотровая площадка PANORAMA360 в ММДЦ «Москва-Сити»',
+          mainPhotoSrc: 'https://kudago.com/media/thumbs/xl/images/place/5c/c5/5cc52c074b4b94388390ab3a3096f5f8.jpg',
+        };
+      } finally {
+        if (sidebarApp.loadingPlaceId == placeId){
+          sidebarApp.loadingPlaceId = null;
+        }
+      }
+    }
   </script>
 </body>
 </html>
