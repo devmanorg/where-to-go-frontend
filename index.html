@@ -28,6 +28,8 @@
 
     <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js" integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew==" crossorigin=""></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-providers/1.10.1/leaflet-providers.min.js" integrity="sha256-EV/ywRtxUOBICwOsLtPpYEONoBF6g+ShAcLX1Ts48GA=" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/leaflet-control-custom@1.0.0/Leaflet.Control.Custom.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/loglevel/1.6.8/loglevel.min.js" integrity="sha256-O/iFn3B3kEV/q5PPVW8TVpRhoywaK7NN4UjdnBO9DXo=" crossorigin="anonymous"></script>
 
     <script src="leaflet-sidebar.js"></script>
 
@@ -50,6 +52,29 @@
             // FIXME make request to server and show data
             // FIXME show preloaded ?
         });
+
+        // FIXME show be hidden in production mode
+        L.control.custom({
+            position: 'bottomleft',
+            content: `
+              <label>
+                  <input name="debug" type="checkbox" ${log.getLevel()<=1 && 'checked'}/>
+                  отладка
+              </label>`,
+            style: {
+              padding: '10px',
+              background: 'rgba(255, 255, 255, 0.7)',
+            },
+            events: {
+              click: event => {
+                if (event.target.name == 'debug'){
+                  let level = event.target.checked && 'debug' || 'warn';
+                  log.setLevel(level);
+                  console.log(`Set log level: ${level}`)
+                }
+              },
+            }
+        }).addTo(map);
     </script>
 </body>
 </html>
