@@ -146,7 +146,16 @@
         //     return {color: feature.properties.color};
         // }
     }).bindPopup(function (layer) {
-        return layer.feature.properties.description;
+        return layer.feature.properties.title;
+    }).on('click', function(event){
+      let feature = event.sourceTarget.feature;
+      if (feature.geometry.type != "Point"){
+        return
+      }
+
+      log.debug('Feature selected', feature);
+
+      sidebar.show();
     }).addTo(map);
   </script>
 </body>
