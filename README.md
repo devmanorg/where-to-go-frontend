@@ -46,7 +46,7 @@ $ python -m http.server 8000
         },
         "properties": {
           // Специфичные для этого сайта данные
-          "title": "«Легенды Москвы",
+          "title": "Легенды Москвы",
           "placeId": "moscow_legends",
           "detailsUrl": "places/moscow_legends.json"
         }
