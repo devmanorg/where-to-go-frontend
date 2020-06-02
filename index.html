@@ -145,7 +145,14 @@
     }).addTo(map);
 
     function loadJSON(elementId){
-      return JSON.parse(document.getElementById(elementId).textContent);
+      let element = document.getElementById(elementId);
+
+      if (!element){
+        log.error(`Not found element with id '${elementId}'.`)
+        return null;
+      }
+
+      return JSON.parse(element.textContent);
     }
 
     let places = loadJSON('places-geojson');
