@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="leaflet-sidebar.css"/>
 
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/@ansur/leaflet-pulse-icon@0.1.1/dist/L.Icon.Pulse.css">
 
   <style>
     body {
@@ -133,6 +134,7 @@
   <script src="https://unpkg.com/leaflet-control-custom@1.0.0/Leaflet.Control.Custom.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/loglevel/1.6.8/loglevel.min.js" integrity="sha256-O/iFn3B3kEV/q5PPVW8TVpRhoywaK7NN4UjdnBO9DXo=" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.11/vue.min.js" integrity="sha256-ngFW3UnAN0Tnm76mDuu7uUtYEcG3G5H1+zioJw3t+68=" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@ansur/leaflet-pulse-icon@0.1.1/dist/L.Icon.Pulse.js"></script>
 
   <script src="leaflet-sidebar.js"></script>
 
@@ -187,21 +189,39 @@
     let places = loadJSON('places-geojson');
     log.debug('Load GeoJSON for places', places);
 
-    L.geoJSON(places, {
-        // style: function (feature) {
-        //     return {color: feature.properties.color};
-        // }
-    }).bindPopup(function (layer) {
-        return layer.feature.properties.title;
-    }).on('click', function(event){
-      let feature = event.sourceTarget.feature;
-      if (feature.geometry.type != "Point"){
-        return
-      }
 
-      log.debug('Feature selected', feature);
-      sidebar.show();
-      loadPlaceInfo(feature.properties.placeId, feature.properties.detailsUrl);
+    L.geoJSON(places, {
+        pointToLayer: function(geoJsonPoint, latlng) {
+          if (geoJsonPoint.geometry.type != "Point"){
+            return
+          }
+
+          let color = geoJsonPoint.properties.color || 'red';
+
+          var pulsingIcon = L.icon.pulse({
+            iconSize: [8, 8],
+            color: color,
+            fillColor: color,
+            heartbeat: 2.5,
+          });
+
+          let marker = L.marker(latlng, {
+            icon: pulsingIcon,
+            riseOnHover: true,
+          });
+
+          marker.bindTooltip(geoJsonPoint.properties.title);
+          marker.bindPopup(function (layer) {
+            return geoJsonPoint.properties.title;
+          })
+
+          marker.on('click', function(event){
+            log.debug('Feature selected', geoJsonPoint);
+            sidebar.show();
+            loadPlaceInfo(geoJsonPoint.properties.placeId, geoJsonPoint.properties.detailsUrl);
+          });
+          return marker;
+        }
     }).addTo(map);
 
     var sidebarApp = new Vue({
