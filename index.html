@@ -35,9 +35,6 @@
       color: red;
       width: 100px;
     }
-    .carousel-item {
-      height: 270px;
-    }
   </style>
   <script id="places-geojson" type="application/json">
     {
@@ -103,7 +100,7 @@
           </ol>
           <div class="carousel-inner">
             <template v-for="(img, index) in carouselImgs" :key="img">
-              <div v-bind:class="{'carousel-item': 1, active: index==0}">
+              <div v-bind:class="{'carousel-item bg-light': 1, active: index==0}">
                 <img v-bind:src="img" class="d-block w-100" v-bind:alt="selectedPlace.title">
               </div>
             </template>
