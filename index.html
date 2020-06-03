@@ -86,11 +86,36 @@
 
       <div class="place-description" v-if="selectedPlace">
 
-        <img v-bind:src="selectedPlace.mainPhotoSrc" class="d-block shadow mb-3 rounded" v-bind:alt="selectedPlace.title">
+        <img v-if="selectedPlace.mainPhotoSrc" v-bind:src="selectedPlace.mainPhotoSrc" class="d-block shadow mb-3 rounded" v-bind:alt="selectedPlace.title">
 
         <h5 class="mb-3">{{ selectedPlace.title }}</h5>
 
         <p>{{ selectedPlace.short_description }}</p>
+
+        <div id="place-photos" class="carousel slide mb-3 shadow" data-ride="carousel" data-interval="5000">
+          <ol class="carousel-indicators">
+            <template v-for="(img, index) in selectedPlace.carouselImgs" :key="img">
+              <li v-on:click="handlePhotosClick(index)" v-bind:class="{active: index==0}"></li>
+            </template>
+          </ol>
+          <div class="carousel-inner">
+            <template v-for="(img, index) in selectedPlace.carouselImgs" :key="img">
+              <div v-bind:class="{'carousel-item': 1, active: index==0}">
+                <img v-bind:src="img" class="d-block w-100" v-bind:alt="selectedPlace.title">
+              </div>
+            </template>
+          </div>
+          <template v-if="selectedPlace.carouselImgs.length">
+            <a class="carousel-control-prev" v-on:click="handlePhotosClick('prev')" role="button">
+              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+              <span class="sr-only">Previous</span>
+            </a>
+            <a class="carousel-control-next" v-on:click="handlePhotosClick('next')" role="button">
+              <span class="carousel-control-next-icon" aria-hidden="true"></span>
+              <span class="sr-only">Next</span>
+            </a>
+          </template>
+        </div>
 
         <div v-html="selectedPlace.long_description"></div>
       </div>
@@ -98,6 +123,10 @@
   </div>
 
   <div id="map"></div>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
 
   <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js" integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew==" crossorigin=""></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-providers/1.10.1/leaflet-providers.min.js" integrity="sha256-EV/ywRtxUOBICwOsLtPpYEONoBF6g+ShAcLX1Ts48GA=" crossorigin="anonymous"></script>
@@ -194,7 +223,20 @@
         loading: function () {
           return this.loadingPlaceId !== null;
         },
-      }
+      },
+      updated: function () {
+        this.$nextTick(function () {
+          // Код, будет запущен только после обновления всех представлений
+          $('#place-photos').carousel();
+        })
+      },
+      methods: {
+        handlePhotosClick: function(slideId='next') {
+          // default event handlers of Bootstrap Carousel conflict with Leaflet
+          // so custom handler will mimic expected carousel behaviour
+          $('#place-photos').carousel(slideId);
+        }
+      },
     });
 
     map.on('click', function () {
@@ -220,11 +262,16 @@
           return
         }
 
-        let mainPhotoSrc = data.imgs.length && data.imgs[0] || null;
+        let imgs = data.imgs || [];
+
+        let mainPhotoSrc = imgs.length && imgs[0] || null;
+        let carouselImgs = imgs.length && imgs.slice(1) || [];
+
         sidebarApp.selectedPlace = {
           title: data.title,
           placeId: placeId,
           mainPhotoSrc: mainPhotoSrc,
+          carouselImgs: carouselImgs,
           imgs: data.imgs,
           short_description: data.description_short,
           long_description: data.description_long,
